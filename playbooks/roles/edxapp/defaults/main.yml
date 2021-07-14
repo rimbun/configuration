@@ -173,6 +173,12 @@ EDXAPP_CELERY_BROKER_VHOST: ""
 EDXAPP_CELERY_BROKER_USE_SSL: false
 EDXAPP_CELERY_EVENT_QUEUE_TTL: !!null
 EDXAPP_CELERY_TIMEZONE: "UTC"
+EDXAPP_CELERYBEAT_SCHEDULER: "celery.beat:PersistentScheduler"
+EDXAPP_ENABLE_CELERY_BEAT: false
+EDXAPP_SINGLE_BEAT_LOCK_TIME: 60
+# EDXAPP_SINGLE_BEAT_HEARTBEAT_INTERVAL must be smaller than EDXAPP_SINGLE_BEAT_LOCK_TIME / 2
+EDXAPP_SINGLE_BEAT_HEARTBEAT_INTERVAL: 29
+EDXAPP_SINGLE_BEAT_VERSION: "0.4.2"
 EDXAPP_BRANCH_IO_KEY: ""
 
 EDXAPP_AUTH_USE_OPENID_PROVIDER: true
@@ -183,7 +189,6 @@ EDXAPP_ENABLE_CROSS_DOMAIN_CSRF_COOKIE: false
 EDXAPP_ENABLE_DISCUSSION_HOME_PANEL: true
 EDXAPP_ENABLE_DISCUSSION_SERVICE: true
 EDXAPP_ENABLE_GRADE_DOWNLOADS: true
-EDXAPP_ENABLE_INSTRUCTOR_ANALYTICS: false
 EDXAPP_ENABLE_SPECIAL_EXAMS: false
 EDXAPP_ENABLE_VIDEO_UPLOAD_PIPELINE: false
 
@@ -243,8 +248,6 @@ EDXAPP_ENABLE_EDXNOTES: false
 
 EDXAPP_ENABLE_CREDIT_ELIGIBILITY: false
 EDXAPP_ENABLE_CREDIT_API: false
-
-EDXAPP_ENABLE_SPECIAL_EXAMS: false
 
 EDXAPP_CUSTOM_COURSES_EDX: false
 
@@ -313,7 +316,6 @@ EDXAPP_ENABLE_ENROLLMENT_RESET: false
 EDXAPP_FEATURES_DEFAULT:
   AUTH_USE_OPENID_PROVIDER: "{{ EDXAPP_AUTH_USE_OPENID_PROVIDER }}"
   ENABLE_DISCUSSION_SERVICE: "{{ EDXAPP_ENABLE_DISCUSSION_SERVICE }}"
-  ENABLE_INSTRUCTOR_ANALYTICS: "{{ EDXAPP_ENABLE_INSTRUCTOR_ANALYTICS }}"
   PREVIEW_LMS_BASE: "{{ EDXAPP_PREVIEW_LMS_BASE }}"
   ENABLE_GRADE_DOWNLOADS: "{{ EDXAPP_ENABLE_GRADE_DOWNLOADS }}"
   ENABLE_MKTG_SITE: "{{ EDXAPP_ENABLE_MKTG_SITE }}"
@@ -547,9 +549,9 @@ EDXAPP_PRIVATE_REQUIREMENTS:
     - name: git+https://github.com/ubc/ubcpi.git@1.0.0#egg=ubcpi-xblock
       extra_args: -e
     # Vector Drawing and ActiveTable XBlocks (Davidson)
-    - name: git+https://github.com/open-craft/xblock-vectordraw.git@76976425356dfc7f13570f354c0c438db84c2840#egg=xblock-vectordraw==0.3.0
+    - name: git+https://github.com/open-craft/xblock-vectordraw.git@76976425356dfc7f13570f354c0c438db84c2840#egg=vectordraw-xblock==0.3.0
       extra_args: -e
-    - name: git+https://github.com/open-craft/xblock-activetable.git@013003aa3ce28f0ae03b8227dc3a6daa4e19997d#egg=xblock-activetable
+    - name: git+https://github.com/open-craft/xblock-activetable.git@013003aa3ce28f0ae03b8227dc3a6daa4e19997d#egg=activetable-xblock
       extra_args: -e
     - name: edx-zoom==1.8
     # Stanford-developed XBlocks (technically unsupported, but here to ease migration of courses from Lagunita)
@@ -957,6 +959,12 @@ REGISTRAR_SERVICE_USER_NAME: "registrar_worker"
 DESIGNER_SERVICE_USER_EMAIL: "designer_worker@example.com"
 DESIGNER_SERVICE_USER_NAME: "designer_worker"
 
+# Configuration needed for LMS to communicate with the License Manager service
+LICENSE_MANAGER_SERVICE_USER_EMAIL: "license_manager_worker@example.com"
+LICENSE_MANAGER_SERVICE_USER_NAME: "license_manager_worker"
+
+ENTERPRISE_CATALOG_SERVICE_USER_EMAIL: "enterprise_catalog_worker@example.com"
+ENTERPRISE_CATALOG_SERVICE_USER_NAME: "enterprise_catalog_worker"
 
 # Configuration settings needed for the LMS to communicate with the Enterprise service.
 EDXAPP_ENTERPRISE_API_URL: "{{ EDXAPP_LMS_INTERNAL_ROOT_URL }}/enterprise/api/v1"
@@ -1411,6 +1419,7 @@ generic_env_config:  &edxapp_generic_env
       LOCATION: "{{ EDXAPP_CACHE_COURSE_STRUCTURE_MEMCACHE }}"
       # Default to two hours
       TIMEOUT: "7200"
+  CELERYBEAT_SCHEDULER: "{{ EDXAPP_CELERYBEAT_SCHEDULER }}"
   CELERY_BROKER_TRANSPORT: "{{ EDXAPP_CELERY_BROKER_TRANSPORT }}"
   CELERY_BROKER_HOSTNAME: "{{ EDXAPP_CELERY_BROKER_HOSTNAME }}"
   COMMENTS_SERVICE_URL: "{{ EDXAPP_COMMENTS_SERVICE_URL }}"
@@ -1772,6 +1781,14 @@ SERVICE_WORKER_USERS:
     is_superuser: false
   - email: "{{ REGISTRAR_SERVICE_USER_EMAIL }}"
     username: "{{ REGISTRAR_SERVICE_USER_NAME }}"
+    is_staff: true
+    is_superuser: false
+  - email: "{{ LICENSE_MANAGER_SERVICE_USER_EMAIL }}"
+    username: "{{ LICENSE_MANAGER_SERVICE_USER_NAME }}"
+    is_staff: true
+    is_superuser: false
+  - email: "{{ ENTERPRISE_CATALOG_SERVICE_USER_EMAIL }}"
+    username: "{{ ENTERPRISE_CATALOG_SERVICE_USER_NAME }}"
     is_staff: true
     is_superuser: false
   - email: "{{ EDXAPP_RETIREMENT_SERVICE_USER_EMAIL }}"

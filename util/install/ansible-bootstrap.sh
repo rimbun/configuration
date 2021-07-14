@@ -33,11 +33,10 @@ fi
 # Bootstrapping constants
 #
 VIRTUAL_ENV_VERSION="16.7.10"
-PIP_VERSION="20.0.2"
+PIP_VERSION="20.3.4"
 SETUPTOOLS_VERSION="44.1.0"
 VIRTUAL_ENV="/tmp/bootstrap"
 PYTHON_BIN="${VIRTUAL_ENV}/bin"
-PYTHON_VERSION="3.5"
 ANSIBLE_DIR="/tmp/ansible"
 CONFIGURATION_DIR="/tmp/configuration"
 EDX_PPA_KEY_SERVER="keyserver.ubuntu.com"
@@ -81,6 +80,12 @@ else
 
 EOF
    exit 1;
+fi
+
+if [[ "${SHORT_DIST}" == focal ]] ;then
+   PYTHON_VERSION="3.8"
+else
+   PYTHON_VERSION="3.5"
 fi
 
 EDX_PPA="deb http://ppa.edx.org ${SHORT_DIST} main"
